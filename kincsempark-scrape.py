@@ -100,7 +100,7 @@ def fetch(session: requests.Session, url: str):
             sleep_for = random.uniform(1.0, 2.0) * attempt
             time.sleep(sleep_for)
 
-def iterate_dates(y0=2003, y1=2025):
+def iterate_dates(y0=2018, y1=2025):
     d = date(y0, 1, 1)
     end = date(y1, 12, 31)
     while d <= end:
