@@ -66,20 +66,27 @@ results.drop(columns=[
   'versenydij', 
   'program_number', 
   'horse_name', 
-  'color', 
+  'color',
+  'time', 
   'sire', 
   'dam'], 
   inplace=True)
 
-# @TODO Try to fill the nullish values
+# @TODO Try to fill the nullish values (race_time), instead of masking
 
-results = results.map(place_conversion)
+mask = results['race_time'].notna()
+
+results['race_of_the_day'] = results['race_of_the_day'].apply(place_conversion)
+results['place'] = results['place'].apply(place_conversion)
+
 results['place'] = pd.to_numeric(results['place'], errors='coerce')
-results = results.map(lambda v: float(v) if str(v).isnumeric() else str(v))
+results['race_time'] = results.loc[mask, 'race_time'] = pd.to_timedelta(
+    '00:' + results.loc[mask, 'race_time'].astype(str)
+)
 
-print(results.info()) # Uncomment to see information about the results
+print(results.info())
 pd.set_option('display.max_colwidth', None)
-print(results.head()) # Uncomment to see first 5 elements of the result set
+print(results.head())
 
 # sns.set_theme(rc = {'figure.figsize':(20,20), 'font.weight': 'bold', 'font.size': 12, 'xtick.labelsize': 14, 'ytick.labelsize': 14, 'xtick.top': True, 'xtick.labeltop': True})
 # sns.set_theme(context='notebook', style='darkgrid', palette='deep', font='sans-serif', font_scale=1, color_codes=True, rc=None)
