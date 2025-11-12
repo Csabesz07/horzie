@@ -4,7 +4,8 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.transforms import ToTensor
 
-from helper_functions import place_conversion, standardize
+from helper_functions import conversion, standardize, StringHolder
+from helper_variables import place_match, sex_match
 
 import numpy as np
 import pandas as pd
@@ -24,30 +25,41 @@ results.drop(columns=[
   'race_name', 
   'versenydij', 
   'program_number', 
-  'horse_name', 
   'color',
   'time', 
-  'sire', 
   'dam'], 
   inplace=True)
 
 # @TODO Try to fill the nullish values (race_time), instead of masking
 # print(results.isnull().sum()) # Should check nan as well
 
-results['race_of_the_day'] = results['race_of_the_day'].apply(place_conversion)
-
-
-results['place'] = results['place'].apply(place_conversion)
-results['place'] = pd.to_numeric(results['place'], errors='coerce')
+results['race_of_the_day'] = results['race_of_the_day'].apply(conversion, args=(place_match,))
+results['place'] = results['place'].apply(conversion, args=(place_match,))
+results['sex'] = results['sex'].apply(conversion, args=(sex_match,))
 
 mask = results['race_time'].notna()
 results['race_time'] = results.loc[mask, 'race_time'] = pd.to_timedelta(
-    '00:' + results.loc[mask, 'race_time'].astype(str)
+  '00:' + results.loc[mask, 'race_time'].astype(str)
 )
 results['race_time'] = results['race_time'].dt.total_seconds()
-results[['race_time', 'distance', 'dividend']] = results[['race_time', 'distance', 'dividend']].apply(standardize)
 
-# @TODO Try to convert string columns like trainer to a numeric value, as it might mean mething who trained the horses
+jocky_names = StringHolder(results['jockey'])
+horse_names = StringHolder(results['horse_name'])
+trainer_names = StringHolder(results['trainer'])
+stable_names = StringHolder(results['stable'])
+sire_names = StringHolder(results['sire'])
+
+results['jockey'] = results['jockey'].apply(conversion, args=(jocky_names.names,))
+results['horse_name'] = results['horse_name'].apply(conversion, args=(horse_names.names,))
+results['trainer'] = results['trainer'].apply(conversion, args=(trainer_names.names,))
+results['stable'] = results['stable'].apply(conversion, args=(stable_names.names,))
+results['sire'] = results['sire'].apply(conversion, args=(sire_names.names,))
+
+results[[
+  'race_time', 'distance', 'dividend', 'jockey', 'horse_name', 'trainer', 'stable', 'sire'
+  ]] = results[[
+    'race_time', 'distance', 'dividend', 'jockey', 'horse_name', 'trainer', 'stable', 'sire'
+    ]].apply(standardize)
 
 print(results.info())
 pd.set_option('display.max_colwidth', None)

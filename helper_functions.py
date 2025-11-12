@@ -1,34 +1,5 @@
-__place_match = {
-  'I.':1,
-  'II.':2,
-  'III.':3,
-  'IV.':4,
-  'V.':5,
-  'VI.':6,
-  'VII.':7,
-  'VIII.':8,
-  'IX.':9,
-  'X.':10,
-  'XI.':11,
-  'XII.':12,
-  'disq.':0,
-  '0.':0,
-  '1.':1,
-  '2.':2,
-  '3.':3,
-  '4.':4,
-  '5.':5,
-  '6.':6,
-  '7.':7,
-  '8.':8,
-  '9.':9,
-  '10.':10,
-  '11.':11,
-  '12.':12,
-}
-
-def place_conversion(x):
-  for [key, val] in __place_match.items():
+def conversion(x, collection):
+  for [key, val] in collection.items():
     if key in str(x):
       x = val
       return x
@@ -36,3 +7,12 @@ def place_conversion(x):
 
 def standardize(x):
   return (x - x.min()) / (x.max() - x.min())
+
+class StringHolder:
+  names = {}
+
+  def __init__(self, collection):
+    for key in collection:
+      if key not in self.names:
+        self.names[key] = len(self.names.keys()) + 1
+      
