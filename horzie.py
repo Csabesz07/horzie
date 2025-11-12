@@ -12,7 +12,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 from sklearn import metrics
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, random_split, TensorDataset
+from sklearn.model_selection import train_test_split
 
 results = pd.read_csv('./races_2003_2025.csv')
 
@@ -78,8 +79,12 @@ I will use 3 datasets:
 In a ratio of 6-2-2
 '''
 
-X = results.loc[ : , results.columns != 'place']
-Y = results['place']
+tensor = torch.tensor(results.values)
+dataset = TensorDataset(tensor)
 
-transforms = transforms.Compose([transforms.ToTensor()])
+data_train, rest = train_test_split(dataset, train_size=0.6)
+data_val, data_test = train_test_split(rest, train_size=0.5)
 
+trainloader = DataLoader(data_train, batch_size=2000)
+valloader = DataLoader(data_val, batch_size=2000)
+testloader = DataLoader(data_test, batch_size=2000)
