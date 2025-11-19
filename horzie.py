@@ -1,21 +1,14 @@
 import torch
-from torch import nn
-from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
-from torchvision.transforms import ToTensor
-
-from helper_functions import conversion, standardize, StringHolder
-from helper_variables import place_match, sex_match
-
-import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-from sklearn import metrics
-from torch.utils.data import DataLoader, random_split, TensorDataset
-from sklearn.model_selection import train_test_split
+from torch.utils.data import TensorDataset
 
-results = pd.read_csv('./races_2003_2025.csv')
+from helper_functions import conversion, standardize, StringHolder
+from helper_variables import place_match, sex_match
+from nn_training import nnTraining
+
+results = pd.read_csv('./docs/races_2003_2025.csv')
 
 print(results.shape)
 
@@ -69,7 +62,7 @@ print(results.head())
 sns.set_theme(rc = {'figure.figsize':(20,20), 'font.weight': 'bold', 'font.size': 12, 'xtick.labelsize': 14, 'ytick.labelsize': 14, 'xtick.top': True, 'xtick.labeltop': True})
 sns.set_theme(context='notebook', style='darkgrid', palette='deep', font='sans-serif', font_scale=1, color_codes=True, rc=None)
 ax = sns.heatmap(results.corr(numeric_only=True).round(2), annot=True, cmap="coolwarm")
-plt.savefig('corr.png', bbox_inches='tight')
+plt.savefig('./docs/corr.png', bbox_inches='tight')
 
 '''
 I will use 3 datasets:
@@ -79,12 +72,13 @@ I will use 3 datasets:
 In a ratio of 6-2-2
 '''
 
-tensor = torch.tensor(results.values)
-dataset = TensorDataset(tensor)
+X = results.drop(columns=['horse_name', 'place']).to_numpy()
+Y = results[['horse_name', 'place']].to_numpy()
 
-data_train, rest = train_test_split(dataset, train_size=0.6)
-data_val, data_test = train_test_split(rest, train_size=0.5)
+print(results.shape, X.shape, Y.shape)
 
-trainloader = DataLoader(data_train, batch_size=2000)
-valloader = DataLoader(data_val, batch_size=2000)
-testloader = DataLoader(data_test, batch_size=2000)
+x_tensor = torch.tensor(X, dtype=torch.float32)
+y_tensor = torch.tensor(Y, dtype=torch.float32)
+dataset = TensorDataset(x_tensor, y_tensor)
+
+nnTraining(dataset=dataset)

@@ -15,4 +15,4 @@ class StringHolder:
     for key in collection:
       if key not in self.names:
         self.names[key] = len(self.names.keys()) + 1
-      
+        
