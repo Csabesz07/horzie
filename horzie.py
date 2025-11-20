@@ -14,6 +14,7 @@ print(results.shape)
 
 results.drop(columns=[
   'date',
+  'race_time',
   'start_time',
   'versenykiiras',
   'race_name', 
@@ -33,11 +34,9 @@ results['place'] = results.loc[results['place'] > 0, ['place']]
 results = results[results['place'].notna()]
 results['sex'] = results['sex'].apply(conversion, args=(sex_match,))
 
-mask = results['race_time'].notna()
-results['race_time'] = results.loc[mask, 'race_time'] = pd.to_timedelta(
-  '00:' + results.loc[mask, 'race_time'].astype(str)
-)
-results['race_time'] = results['race_time'].dt.total_seconds()
+# results = results[results['race_time'].notna()]
+# results['race_time'] = pd.to_timedelta('00:' + results['race_time'].astype(str))
+# results['race_time'] = results['race_time'].dt.total_seconds()
 
 jocky_names = NameHolder(results['jockey'])
 horse_names = NameHolder(results['horse_name'])
@@ -52,9 +51,9 @@ results['stable'] = results['stable'].apply(conversion, args=(stable_names.names
 results['sire'] = results['sire'].apply(conversion, args=(sire_names.names,))
 
 results[[
-  'race_time', 'distance', 'dividend', 'jockey', 'horse_name', 'trainer', 'stable', 'sire'
+  'distance', 'dividend', 'jockey', 'horse_name', 'trainer', 'stable', 'sire'
   ]] = results[[
-    'race_time', 'distance', 'dividend', 'jockey', 'horse_name', 'trainer', 'stable', 'sire'
+    'distance', 'dividend', 'jockey', 'horse_name', 'trainer', 'stable', 'sire'
     ]].apply(standardize)
 
 print(results.info())

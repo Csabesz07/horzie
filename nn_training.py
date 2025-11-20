@@ -21,7 +21,7 @@ def nnTraining(dataset, output_size):
   dataloader_val = DataLoader(val_dataset, batch_size=2000, shuffle=True)
   dataloader_test = DataLoader(test_dataset, batch_size=2000, shuffle=False)
   
-  model = CustomModel(in_features=14, output_size=output_size)
+  model = CustomModel(in_features=13, output_size=output_size)
   lossfn = nn.CrossEntropyLoss()
   optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -67,6 +67,6 @@ def nnTraining(dataset, output_size):
   plt.ylabel('Loss')
   plt.legend()
   plt.title('Loss Over Epochs')
-  plt.show()
+  plt.savefig('./docs/loss.png', bbox_inches='tight')  
 
   best_model = model.load_state_dict(best_model_wts)
