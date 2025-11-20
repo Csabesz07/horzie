@@ -4,7 +4,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from torch.utils.data import TensorDataset
 
-from helper_functions import conversion, standardize, StringHolder
+from helper_functions import conversion, standardize, NameHolder
 from helper_variables import place_match, sex_match
 from nn_training import nnTraining
 
@@ -29,6 +29,8 @@ results.drop(columns=[
 
 results['race_of_the_day'] = results['race_of_the_day'].apply(conversion, args=(place_match,))
 results['place'] = results['place'].apply(conversion, args=(place_match,))
+results['place'] = results.loc[results['place'] > 0, ['place']]
+results = results[results['place'].notna()]
 results['sex'] = results['sex'].apply(conversion, args=(sex_match,))
 
 mask = results['race_time'].notna()
@@ -37,11 +39,11 @@ results['race_time'] = results.loc[mask, 'race_time'] = pd.to_timedelta(
 )
 results['race_time'] = results['race_time'].dt.total_seconds()
 
-jocky_names = StringHolder(results['jockey'])
-horse_names = StringHolder(results['horse_name'])
-trainer_names = StringHolder(results['trainer'])
-stable_names = StringHolder(results['stable'])
-sire_names = StringHolder(results['sire'])
+jocky_names = NameHolder(results['jockey'])
+horse_names = NameHolder(results['horse_name'])
+trainer_names = NameHolder(results['trainer'])
+stable_names = NameHolder(results['stable'])
+sire_names = NameHolder(results['sire'])
 
 results['jockey'] = results['jockey'].apply(conversion, args=(jocky_names.names,))
 results['horse_name'] = results['horse_name'].apply(conversion, args=(horse_names.names,))
@@ -72,13 +74,13 @@ I will use 3 datasets:
 In a ratio of 6-2-2
 '''
 
-X = results.drop(columns=['horse_name', 'place']).to_numpy()
-Y = results[['horse_name', 'place']].to_numpy()
+X = results.drop(columns=['place']).to_numpy()
+Y = results['place'].to_numpy()
 
 print(results.shape, X.shape, Y.shape)
 
 x_tensor = torch.tensor(X, dtype=torch.float32)
-y_tensor = torch.tensor(Y, dtype=torch.float32)
+y_tensor = torch.tensor(Y, dtype=torch.long)
 dataset = TensorDataset(x_tensor, y_tensor)
 
-nnTraining(dataset=dataset)
+nnTraining(dataset=dataset, output_size=len(set(place_match.values())))

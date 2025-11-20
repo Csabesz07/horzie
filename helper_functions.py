@@ -8,10 +8,10 @@ def conversion(x, collection):
 def standardize(x):
   return (x - x.min()) / (x.max() - x.min())
 
-class StringHolder:
-  names = {}
-
+class NameHolder:
   def __init__(self, collection):
+    self.names = {}
+
     for key in collection:
       if key not in self.names:
         self.names[key] = len(self.names.keys()) + 1

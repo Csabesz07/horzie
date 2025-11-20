@@ -8,7 +8,7 @@ from sklearn.model_selection import train_test_split
 
 from custom_model import CustomModel
 
-def nnTraining(dataset):
+def nnTraining(dataset, output_size):
   indices = np.arange(len(dataset))
   train_idx, rest_idx = train_test_split(indices, train_size=0.6, shuffle=True)
   val_idx, test_idx   = train_test_split(rest_idx, train_size=0.5, shuffle=True)
@@ -21,8 +21,8 @@ def nnTraining(dataset):
   dataloader_val = DataLoader(val_dataset, batch_size=2000, shuffle=True)
   dataloader_test = DataLoader(test_dataset, batch_size=2000, shuffle=False)
   
-  model = CustomModel(in_features=13)
-  lossfn = nn.MSELoss()
+  model = CustomModel(in_features=14, output_size=output_size)
+  lossfn = nn.CrossEntropyLoss()
   optimizer = optim.Adam(model.parameters(), lr=0.001)
 
   '''Trainin loop with early stopping'''
