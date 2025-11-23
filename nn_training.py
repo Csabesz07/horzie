@@ -7,6 +7,7 @@ from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import train_test_split
 
 from custom_model import CustomModel
+from helper_functions import EarlyStopper
 
 def nnTraining(dataset, output_size):
   indices = np.arange(len(dataset))
@@ -29,12 +30,13 @@ def nnTraining(dataset, output_size):
 
   num_epochs = 200
   patience = 20
-  best_val_loss = float('inf')
-  patience_counter = 0
   best_model_wts = None
+  early_stopped = False
 
   train_losses = []
   val_losses = []
+
+  early_stopper = EarlyStopper(patience=patience, min_delta=0.001)
 
   for epoch in range(num_epochs):
     for x_batch, y_batch in dataloader_train:
@@ -60,13 +62,18 @@ def nnTraining(dataset, output_size):
         print(f"Epoch {epoch}/{num_epochs}, Train Loss: {loss.item()}, Val Loss: {val_loss.item()}")
     best_model_wts = model.state_dict()
 
+    if early_stopper.early_stop(val_loss.item()):
+      print(f"Early stopping at epoch {epoch}")
+      early_stopped = True
+      break
+
   plt.figure(figsize=(10, 5))
   plt.plot(train_losses, label='Training Loss')
   plt.plot(val_losses, label='Validation Loss')
   plt.xlabel('Epochs')
   plt.ylabel('Loss')
   plt.legend()
-  plt.title('Loss Over Epochs')
-  plt.savefig('./docs/loss.png', bbox_inches='tight')  
+  plt.title('Loss Over Epochs (Early stopped)' if early_stopped else 'Loss Over Epochs')
+  plt.savefig('./docs/loss_latest.png', bbox_inches='tight')  
 
   best_model = model.load_state_dict(best_model_wts)

@@ -51,11 +51,15 @@ Yes, this probably needs improvement, but for now this is the baseline I’m exp
 
 Here’s how the loss developed during my first major training run:
 
-![Loss over epochs](./docs/loss.png "Loss over epochs")
+![First loss over epochs](./docs/loss.png "First loss over epochs")
 
 Training and validation loss steadily decreased, for a limited time...
 Not perfect, but significantly better than random guessing
 This means the model is learning, but the problem remains highly unpredictable — which is exactly what makes it interesting.
+
+Since then, my latest training looks like the following:
+
+![Latest loss over epochs](./docs/loss_latest.png "Latest loss over epochs")
 
 ## 🚀 Plans for the Future
 
