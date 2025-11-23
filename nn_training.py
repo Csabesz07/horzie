@@ -12,10 +12,10 @@ from helper_functions import EarlyStopper
 def nnTraining(dataset, output_size):
   indices = np.arange(len(dataset))
   train_idx, rest_idx = train_test_split(indices, train_size=0.6, shuffle=True)
-  val_idx, test_idx   = train_test_split(rest_idx, train_size=0.5, shuffle=True)
+  val_idx, test_idx = train_test_split(rest_idx, train_size=0.5, shuffle=True)
 
   train_dataset = Subset(dataset, train_idx)
-  val_dataset   = Subset(dataset, val_idx)
+  val_dataset = Subset(dataset, val_idx)
   test_dataset  = Subset(dataset, test_idx)
 
   dataloader_train = DataLoader(train_dataset, batch_size=2000, shuffle=True)
@@ -39,28 +39,19 @@ def nnTraining(dataset, output_size):
   early_stopper = EarlyStopper(patience=patience, min_delta=0.001)
 
   for epoch in range(num_epochs):
-    for x_batch, y_batch in dataloader_train:
-      model.train()
-      optimizer.zero_grad()
-      outputs = model(x_batch)
-      loss = lossfn(outputs, y_batch)
-      loss.backward()
-      optimizer.step()
-
+    '''Training part'''
+    loss = do_training(model, lossfn, optimizer, dataloader_train)
     train_losses.append(loss.mean().item())
 
     '''Validation part'''
-    model.eval()
-    with torch.no_grad():
-      for x_batch, y_batch in dataloader_val:
-        val_outputs = model(x_batch)
-        val_loss = lossfn(val_outputs, y_batch)
-
+    val_loss = do_validation(model, lossfn, dataloader_val)
     val_losses.append(val_loss.mean().item())
 
     if epoch % 10 == 0:
         print(f"Epoch {epoch}/{num_epochs}, Train Loss: {loss.item()}, Val Loss: {val_loss.item()}")
     best_model_wts = model.state_dict()
+
+    print(val_loss.item())
 
     if early_stopper.early_stop(val_loss.item()):
       print(f"Early stopping at epoch {epoch}")
@@ -77,3 +68,23 @@ def nnTraining(dataset, output_size):
   plt.savefig('./docs/loss_latest.png', bbox_inches='tight')  
 
   best_model = model.load_state_dict(best_model_wts)
+
+def do_validation(model, lossfn, dataLoader):
+  model.eval()
+  with torch.no_grad():
+    for x_batch, y_batch in dataLoader:
+      val_outputs = model(x_batch)
+      val_loss = lossfn(val_outputs, y_batch)
+
+  return val_loss
+
+def do_training(model, lossfn, optimizer, dataloader):
+  for x_batch, y_batch in dataloader:
+    model.train()
+    optimizer.zero_grad()
+    outputs = model(x_batch)
+    loss = lossfn(outputs, y_batch)
+    loss.backward()
+    optimizer.step()
+
+  return loss
