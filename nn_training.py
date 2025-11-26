@@ -51,8 +51,6 @@ def nnTraining(dataset, output_size):
         print(f"Epoch {epoch}/{num_epochs}, Train Loss: {loss.item()}, Val Loss: {val_loss.item()}")
     best_model_wts = model.state_dict()
 
-    print(val_loss.item())
-
     if early_stopper.early_stop(val_loss.item()):
       print(f"Early stopping at epoch {epoch}")
       early_stopped = True
