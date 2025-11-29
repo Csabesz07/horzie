@@ -1,15 +1,22 @@
+import torch
 from torch import nn
 
 class CustomModel(nn.Module):
-  def __init__(self, in_features, output_size):
+  def __init__(self, input_size, hidden_size, num_layers, output_size, device):
     super(CustomModel, self).__init__()
-    self.model = nn.Sequential(
-      nn.Linear(in_features, 32),
-      nn.ReLU(),
-      nn.Linear(32, 16),
-      nn.ReLU(),
-      nn.Linear(16, output_size)
-    )
+    self.device = device
+    self.hidden_size = hidden_size
+    self.num_layers = num_layers
+    self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+    self.fc = nn.Linear(hidden_size, output_size)
 
-  def forward(self, X):
-    return self.model(X)
+  def forward(self, x):
+    '''Initial hidden and cell states'''
+    h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device)
+    c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device)
+
+    '''Forward propagate LSTM'''
+    out, _ = self.lstm(x, (h0, c0))
+
+    out = self.fc(out[:, -1, :])
+    return out

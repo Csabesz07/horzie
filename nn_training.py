@@ -7,31 +7,38 @@ from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import train_test_split
 
 from custom_model import CustomModel
+from custom_dataloader import CustomDataloader
 from helper_functions import EarlyStopper
 
 def nnTraining(dataset, output_size):
-  indices = np.arange(len(dataset))
-  train_idx, rest_idx = train_test_split(indices, train_size=0.6, shuffle=True)
-  val_idx, test_idx = train_test_split(rest_idx, train_size=0.5, shuffle=True)
+  # indices = np.arange(len(dataset))
+  # train_idx, rest_idx = train_test_split(indices, train_size=0.6, shuffle=True)
+  # val_idx, test_idx = train_test_split(rest_idx, train_size=0.5, shuffle=True)
 
-  train_dataset = Subset(dataset, train_idx)
-  val_dataset = Subset(dataset, val_idx)
-  test_dataset  = Subset(dataset, test_idx)
+  # train_dataset = Subset(dataset, train_idx)
+  # val_dataset = Subset(dataset, val_idx)
+  # test_dataset  = Subset(dataset, test_idx)
 
-  dataloader_train = DataLoader(train_dataset, batch_size=2000, shuffle=True)
-  dataloader_val = DataLoader(val_dataset, batch_size=2000, shuffle=True)
-  dataloader_test = DataLoader(test_dataset, batch_size=2000, shuffle=False)
+  dataloader_train = CustomDataloader()
+  # dataloader_train = DataLoader(train_dataset, batch_size=2000, shuffle=True)
+  # dataloader_val = DataLoader(val_dataset, batch_size=2000, shuffle=True)
+  # dataloader_test = DataLoader(test_dataset, batch_size=2000, shuffle=False)
   
-  model = CustomModel(in_features=13, output_size=output_size)
+  input_size = CustomDataloader.input_size
+  hidden_size = 64
+  num_layers = 1
+  output_size = 1
+  learning_rate = 0.001
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+  model = CustomModel(input_size, hidden_size, num_layers, output_size, device).to(device)
   lossfn = nn.CrossEntropyLoss()
-  optimizer = optim.Adam(model.parameters(), lr=0.001)
+  optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
   '''Trainin loop with early stopping'''
-
   num_epochs = 200
   patience = 20
   best_model_wts = None
-  early_stopped = False
 
   train_losses = []
   val_losses = []
@@ -53,7 +60,6 @@ def nnTraining(dataset, output_size):
 
     if early_stopper.early_stop(val_loss.item()):
       print(f"Early stopping at epoch {epoch}")
-      early_stopped = True
       break
 
   plt.figure(figsize=(10, 5))
@@ -62,7 +68,7 @@ def nnTraining(dataset, output_size):
   plt.xlabel('Epochs')
   plt.ylabel('Loss')
   plt.legend()
-  plt.title('Loss Over Epochs (Early stopped)' if early_stopped else 'Loss Over Epochs')
+  plt.title('Loss Over Epochs (Early stopped)' if early_stopper.early_stopped else 'Loss Over Epochs')
   plt.savefig('./docs/loss_latest.png', bbox_inches='tight')  
 
   best_model = model.load_state_dict(best_model_wts)

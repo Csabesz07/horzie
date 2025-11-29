@@ -18,6 +18,7 @@ class NameHolder:
         
 class EarlyStopper:
   def __init__(self, patience=5, min_delta=0):
+    self.early_stopped = False
     self.patience = patience
     self.min_delta = min_delta
     self.counter = 0
@@ -30,6 +31,7 @@ class EarlyStopper:
     elif validation_loss > (self.min_validation_loss + self.min_delta):
       self.counter += 1
       if self.counter >= self.patience:
+        self.early_stopped = True
         return True
       
     return False
