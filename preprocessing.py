@@ -30,14 +30,19 @@ def preprocess_data(data) -> pd.DataFrame:
   jocky_names = NameHolder(data['jockey'])
   horse_names = NameHolder(data['horse_name'])
 
-  preserved_horse_names = Path('./docs/horse_names.csv')
-  if preserved_horse_names.exists():
-    update_horse_names(horse_names)
+  if Path('./docs/horse_names.csv').exists():
+    old_df = pd.read_csv('./docs/horse_names.csv')
+    old_names = dict(zip(old_df['horse_name'], old_df['id']))
+    missing_names = [name for name in horse_names.names if name not in old_names]
+
+    if len(missing_names) > 0:
+      max_id = max(old_names.values()) if old_names else 0
+      update_horse_names(missing_names, max_id)
   else:
-    with open('./docs/horse_names.csv', mode='w', newline='') as file:
+    with open('./docs/horse_names.csv', mode='w', newline='', encoding='utf-8') as file:
       w = csv.DictWriter(file, ["horse_name","id"])
       w.writeheader()
-      w.writerows([{name, idx} for idx, name in enumerate(horse_names.names)])
+      w.writerows([{"horse_name": name, "id": idx} for idx, name in enumerate(horse_names.names.keys(), start=1)])
 
   trainer_names = NameHolder(data['trainer'])
   stable_names = NameHolder(data['stable'])
@@ -57,20 +62,30 @@ def preprocess_data(data) -> pd.DataFrame:
   
   return data
 
-def update_horse_names(data):
-  with open('./docs/horse_names.csv', mode='w', newline='') as file:
-      w = csv.DictWriter(file, ["horse_name","id"])
-      w.writeheader()
-      w.writerows(data.names)
+def update_horse_names(data, start_id):
+  curr_id = start_id + 1
+  dict_names = {}
+  for _, name in enumerate(data):
+    dict_names[name] = curr_id
+    curr_id += 1
 
-def vectorize_data(data):
+  with open('./docs/horse_names.csv', mode='a', newline='', encoding='utf-8') as file:
+    w = csv.DictWriter(file, ["horse_name","id"])
+    w.writerows([{"horse_name": name, "id": dict_names[name]} for _, name in enumerate(dict_names.keys())])
+
+def vectorize_data(dataframe):
   '''
-  Load the data into a tensor format of the following:
-  [
-    [feat1_race1, feat2_race1, ..., featK_race1],
-    [feat1_race2, feat2_race2, ..., featK_race2],
-    ...
-    [feat1_raceN, feat2_raceN, ..., featK_raceN]
-  ]
+    The desired format of the dataset is a list of horses,
+    with the list of their races and feautres
   '''
 
+  print('now vectorizing')
+  raise NotImplementedError('Vectorization not implemented yet')
+
+  horses = {}
+  for _, row in dataframe.iterrows():
+    horse_name = row['horse_name']
+    if horse_name in horses:
+      horses[horse_name].append(row)
+    else:
+      horses[horse_name] = [row.to_numpy()]

@@ -7,24 +7,30 @@ from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import train_test_split
 
 from custom_model import CustomModel
-from custom_dataloader import CustomDataloader
+from custom_dataset import CustomDataset
 from helper_functions import EarlyStopper
 
-def nnTraining(dataset, output_size):
-  # indices = np.arange(len(dataset))
-  # train_idx, rest_idx = train_test_split(indices, train_size=0.6, shuffle=True)
-  # val_idx, test_idx = train_test_split(rest_idx, train_size=0.5, shuffle=True)
+def nnTraining(dataset, output_size):  
+  '''
+    I will use 3 datasets:
+      - Train
+      - Validation
+      - Test
+    In a ratio of 6-2-2
+  '''
+  train, rest = train_test_split(dataset, train_size=0.6, shuffle=True)
+  val, test = train_test_split(rest, train_size=0.5, shuffle=True)
 
-  # train_dataset = Subset(dataset, train_idx)
-  # val_dataset = Subset(dataset, val_idx)
-  # test_dataset  = Subset(dataset, test_idx)
+  train_dataset = CustomDataset(train)
+  val_dataset = CustomDataset(val)
+  test_dataset  = CustomDataset(test)
 
-  dataloader_train = CustomDataloader()
-  # dataloader_train = DataLoader(train_dataset, batch_size=2000, shuffle=True)
-  # dataloader_val = DataLoader(val_dataset, batch_size=2000, shuffle=True)
-  # dataloader_test = DataLoader(test_dataset, batch_size=2000, shuffle=False)
+  # The bacth size refers to the number of horses in a batch
+  dataloader_train = DataLoader(train_dataset, batch_size=200, shuffle=True)
+  dataloader_val = DataLoader(val_dataset, batch_size=200, shuffle=True)
+  dataloader_test = DataLoader(test_dataset, batch_size=200, shuffle=False)
   
-  input_size = CustomDataloader.input_size
+  input_size = CustomDataset.input_size
   hidden_size = 64
   num_layers = 1
   output_size = 1
