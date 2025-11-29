@@ -1,3 +1,5 @@
+import pandas as pd
+
 def conversion(x, collection):
   for [key, val] in collection.items():
     if key in str(x):
@@ -7,6 +9,16 @@ def conversion(x, collection):
 
 def standardize(x):
   return (x - x.min()) / (x.max() - x.min())
+
+def parse_race_time(t):
+  if pd.isna(t) or not isinstance(t, str):
+    return float('nan')
+
+  try:
+      minutes, seconds = t.split(':')
+      return int(minutes) * 60 + float(seconds)
+  except Exception:
+      return float('nan')
 
 class NameHolder:
   def __init__(self, collection):

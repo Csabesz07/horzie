@@ -8,13 +8,7 @@ from nn_training import nnTraining
 
 results = pd.read_csv('./docs/races_2003_2025.csv')
 
-print(results.shape)
-
 data = preprocess_data(results)
-
-print(data.info())
-pd.set_option('display.max_colwidth', None)
-print(data.head())
 
 sns.set_theme(rc = {'figure.figsize':(20,20), 'font.weight': 'bold', 'font.size': 12, 'xtick.labelsize': 14, 'ytick.labelsize': 14, 'xtick.top': True, 'xtick.labeltop': True})
 sns.set_theme(context='notebook', style='darkgrid', palette='deep', font='sans-serif', font_scale=1, color_codes=True, rc=None)

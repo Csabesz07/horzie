@@ -1,13 +1,13 @@
 import pandas as pd
-from helper_functions import conversion, NameHolder, standardize
+from helper_functions import conversion, NameHolder, standardize, parse_race_time
 from helper_variables import place_match, sex_match
 import csv
+import numpy as np
 from pathlib import Path
 
 def preprocess_data(data) -> pd.DataFrame:
   data.drop(columns=[
   'date',
-  'race_time',
   'start_time',
   'versenykiiras',
   'race_name', 
@@ -26,6 +26,7 @@ def preprocess_data(data) -> pd.DataFrame:
   data['place'] = data.loc[data['place'] > 0, ['place']]
   data = data[data['place'].notna()]
   data['sex'] = data['sex'].apply(conversion, args=(sex_match,))
+  data['race_time'] = data['race_time'].apply(parse_race_time)  
 
   jocky_names = NameHolder(data['jockey'])
   horse_names = NameHolder(data['horse_name'])
@@ -55,9 +56,9 @@ def preprocess_data(data) -> pd.DataFrame:
   data['sire'] = data['sire'].apply(conversion, args=(sire_names.names,))
 
   data[[
-    'distance', 'dividend', 'jockey', 'horse_name', 'trainer', 'stable', 'sire'
+    'distance', 'dividend', 'jockey', 'trainer', 'stable', 'sire'
     ]] = data[[
-      'distance', 'dividend', 'jockey', 'horse_name', 'trainer', 'stable', 'sire'
+      'distance', 'dividend', 'jockey', 'trainer', 'stable', 'sire'
       ]].apply(standardize)
   
   return data
@@ -79,13 +80,19 @@ def vectorize_data(dataframe):
     with the list of their races and feautres
   '''
 
-  print('now vectorizing')
-  raise NotImplementedError('Vectorization not implemented yet')
-
   horses = {}
   for _, row in dataframe.iterrows():
-    horse_name = row['horse_name']
-    if horse_name in horses:
-      horses[horse_name].append(row)
+    horse = row['horse_name']
+    time = row['race_time']
+
+    race_vector = np.append(
+          row.drop(["horse_name", "race_time"]).to_numpy(),
+          time
+      )
+
+    if horse in horses:
+        horses[horse].append(race_vector)
     else:
-      horses[horse_name] = [row.to_numpy()]
+        horses[horse] = [race_vector]
+
+  return list(horses.values())

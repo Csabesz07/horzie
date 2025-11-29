@@ -5,6 +5,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Subset
 from sklearn.model_selection import train_test_split
+from torch.nn.utils.rnn import pad_sequence
 
 from custom_model import CustomModel
 from custom_dataset import CustomDataset
@@ -26,9 +27,9 @@ def nnTraining(dataset, output_size):
   test_dataset  = CustomDataset(test)
 
   # The bacth size refers to the number of horses in a batch
-  dataloader_train = DataLoader(train_dataset, batch_size=200, shuffle=True)
-  dataloader_val = DataLoader(val_dataset, batch_size=200, shuffle=True)
-  dataloader_test = DataLoader(test_dataset, batch_size=200, shuffle=False)
+  dataloader_train = DataLoader(train_dataset, batch_size=200, shuffle=True, collate_fn=collate_fn)
+  dataloader_val = DataLoader(val_dataset, batch_size=200, shuffle=True, collate_fn=collate_fn)
+  dataloader_test = DataLoader(test_dataset, batch_size=200, shuffle=False, collate_fn=collate_fn)
   
   input_size = CustomDataset.input_size
   hidden_size = 64
@@ -79,22 +80,30 @@ def nnTraining(dataset, output_size):
 
   best_model = model.load_state_dict(best_model_wts)
 
-def do_validation(model, lossfn, dataLoader):
-  model.eval()
-  with torch.no_grad():
-    for x_batch, y_batch in dataLoader:
-      val_outputs = model(x_batch)
-      val_loss = lossfn(val_outputs, y_batch)
-
-  return val_loss
-
 def do_training(model, lossfn, optimizer, dataloader):
-  for x_batch, y_batch in dataloader:
+  for x_batch, lengths, y_batch in dataloader:
     model.train()
     optimizer.zero_grad()
-    outputs = model(x_batch)
+    outputs = model(x_batch, lengths)
     loss = lossfn(outputs, y_batch)
     loss.backward()
     optimizer.step()
 
   return loss
+
+def do_validation(model, lossfn, dataLoader):
+  model.eval()
+  with torch.no_grad():
+    for x_batch, lengths, y_batch in dataLoader:
+      val_outputs = model(x_batch, lengths)
+      val_loss = lossfn(val_outputs, y_batch)
+
+  return val_loss
+
+def collate_fn(batch):
+  sequences, targets = zip(*batch)
+  seq_lengths = torch.tensor([seq.size(0) for seq in sequences], dtype=torch.long)
+  padded_sequences = pad_sequence(sequences, batch_first=True)
+  targets = torch.stack(targets)
+
+  return padded_sequences, seq_lengths, targets
