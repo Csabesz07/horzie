@@ -27,6 +27,7 @@ def preprocess_data(data) -> pd.DataFrame:
   data = data[data['place'].notna()]
   data['sex'] = data['sex'].apply(conversion, args=(sex_match,))
   data['race_time'] = data['race_time'].apply(parse_race_time)  
+  data = data[data['race_time'].notna()]
 
   jocky_names = NameHolder(data['jockey'])
   horse_names = NameHolder(data['horse_name'])
