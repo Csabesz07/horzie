@@ -33,7 +33,7 @@ def nnTraining(dataset, output_size):
   
   input_size = CustomDataset.input_size
   hidden_size = 64
-  num_layers = 1
+  num_layers = 2
   output_size = 1
   learning_rate = 0.001
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -45,6 +45,7 @@ def nnTraining(dataset, output_size):
   '''Trainin loop with early stopping'''
   num_epochs = 200
   patience = 20
+  best_loss = float('inf')
   best_model_wts = None
 
   train_losses = []
@@ -62,8 +63,10 @@ def nnTraining(dataset, output_size):
     val_losses.append(val_loss.mean().item())
 
     if epoch % 10 == 0:
-        print(f"Epoch {epoch}/{num_epochs}, Train Loss: {loss.item()}, Val Loss: {val_loss.item()}")
-    best_model_wts = model.state_dict()
+      print(f"Epoch {epoch}/{num_epochs}, Train Loss: {loss.item()}, Val Loss: {val_loss.item()}")
+    if val_loss < best_loss:
+      best_loss = val_loss
+      best_model_wts = model.state_dict()
 
     if early_stopper.early_stop(val_loss.item()):
       print(f"Early stopping at epoch {epoch}")
@@ -77,7 +80,8 @@ def nnTraining(dataset, output_size):
   plt.legend()
   plt.title('Loss Over Epochs (Early stopped)' if early_stopper.early_stopped else 'Loss Over Epochs')
   plt.savefig('./docs/loss_latest.png', bbox_inches='tight')  
-
+  
+  # torch.save(model.state_dict(), "horzie_model.pth") # Save the model
   best_model = model.load_state_dict(best_model_wts)
 
 def do_training(model, lossfn, optimizer, dataloader):
