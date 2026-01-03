@@ -14,8 +14,8 @@ class CustomModel(nn.Module):
 
   def forward(self, x, lengths):
     '''Initial hidden and cell states'''
-    h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device)
-    c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(self.device)
+    h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
+    c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
 
     '''Forward propagate LSTM without the PAD steps'''
     packed = pack_padded_sequence(x, lengths.cpu(), batch_first=True, enforce_sorted=False)

@@ -14,6 +14,8 @@ class CustomDataset(Dataset):
   def __getitem__(self, index):
     curr_data = self.dataset[index]
     input_sequence = torch.tensor([race[:-1] for race in curr_data], dtype=torch.float32)
-    target_val = torch.tensor(curr_data[-1][-1], dtype=torch.float32)
+    place = int(curr_data[-1][-1])
+    target_class = place if 1 <= place <= 5 else 0
+    target_val = torch.tensor(target_class, dtype=torch.long)
     return input_sequence, target_val
     

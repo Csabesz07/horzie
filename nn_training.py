@@ -34,12 +34,12 @@ def nnTraining(dataset, output_size):
   input_size = CustomDataset.input_size
   hidden_size = 64
   num_layers = 2
-  output_size = 1
+  output_size = 6
   learning_rate = 0.001
   device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
   model = CustomModel(input_size, hidden_size, num_layers, output_size, device).to(device)
-  lossfn = nn.MSELoss()
+  lossfn = nn.CrossEntropyLoss()
   optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
   '''Trainin loop with early stopping'''
@@ -88,7 +88,7 @@ def do_training(model, lossfn, optimizer, dataloader):
     model.train()
     optimizer.zero_grad()
     outputs = model(x_batch, lengths)
-    loss = lossfn(outputs.squeeze(-1), y_batch)
+    loss = lossfn(outputs, y_batch)
     loss.backward()
     optimizer.step()
 
@@ -99,7 +99,7 @@ def do_validation(model, lossfn, dataLoader):
   with torch.no_grad():
     for x_batch, lengths, y_batch in dataLoader:
       val_outputs = model(x_batch, lengths)
-      val_loss = lossfn(val_outputs.squeeze(-1), y_batch)
+      val_loss = lossfn(val_outputs, y_batch)
 
   return val_loss
 

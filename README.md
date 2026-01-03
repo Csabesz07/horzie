@@ -7,7 +7,7 @@ This repository documents my journey — from raw data to classification models,
 
 ## 🎯 What Do I Do?
 
-I learn from historical horse racing data (Kincsem Park, 2003–2025) and try to predict the finishing position of each horse.
+I learn from historical horse racing data (Kincsem Park, 2003–2025) and try to predict whether a horse will finish in the top 5, and if so, at which position.
 
 Currently, I extract a large number of input features — probably too many, honestly — and feed them into a classification neural network that tries to learn patterns from:
 
@@ -36,12 +36,20 @@ You will see later in this document, but it's in plan to give me as up to date d
 
 ## 🧠 Model Architecture
 
-My "brain" is a combination of an LSTM and a regression head.
+My "brain" is a **sequence-based classification model built on an LSTM**.
 
-The idea is to analyze each horse's performance race by race, as a sequence.  
-For every horse, I feed its past races (with their features) into an LSTM.  
-From the last hidden state of the LSTM, I apply a linear layer to predict that horse's race time.  
-Once I have a predicted race time for each horse in a race, I can rank them and pick the five fastest.
+The idea is to analyze each horse’s historical performance **race by race, as a sequence**, and predict whether that horse will finish in the **top 5** in its next race.
+
+For every horse:
+
+- Past races are fed sequentially into an LSTM
+- The **last hidden state** represents the horse’s current form
+- A fully connected layer produces **class logits** for finishing positions
+
+Classes are defined as:
+
+- `0` → not in top 5
+- `1–5` → exact finishing position
 
 ```python
 class CustomModel(nn.Module):
@@ -50,31 +58,30 @@ class CustomModel(nn.Module):
     self.device = device
     self.hidden_size = hidden_size
     self.num_layers = num_layers
-    self.last_ht = None
     self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
     self.fc = nn.Linear(hidden_size, output_size)
 ```
 
-To make this work, I need the data in a special format:
+To make sequence learning possible, the dataset is structured by **horse**, not by race.
 
-- The dataset is a list of horses.
-- Each horse is represented by a sequence (list) of races.
-- Each race is a feature vector containing the race attributes (distance, jockey, trainer, sire, etc.) plus the race time as the target value.
+- The dataset is a list of horses
+- Each horse is represented by a sequence of its past races
+- Each race is a feature vector describing race conditions and metadata
 
 So the structure looks like this:
 
 ```
 [ # horse 1
-  [ race_1_feature1, race_1_feature2, ..., race_1_featureK, race_time ],
-  [ race_2_feature1, race_2_feature2, ..., race_2_featureK, race_time ],
+  [ race_1_feature1, race_1_feature2, ..., race_1_featureK, place ],
+  [ race_2_feature1, race_2_feature2, ..., race_2_featureK, place ],
   ...
 ]
 ```
 
 During training:
 
-- The input to the LSTM is all features except race time.
-- The target is the race time of the last race in the sequence.
+- **Inputs**: all race features except `place`
+- **Target**: the finishing position (`place`) of the **last race**
 
 However, horses have **different numbers of past races**, which means their
 input sequences are not the same length.  
@@ -94,22 +101,28 @@ racing histories.
 
 Here’s how the loss developed during my first major training run:
 
-![First loss over epochs](./docs/loss.png "First loss over epochs")
+![First loss over epochs with regression](./docs/loss.png "First loss over epochs with regression")
 
-The model was trained using MSELoss, which penalizes the squared difference between the predicted race time and the real race time.
-Because race times are measured in seconds, the raw loss values represent seconds².
+When the above training was run, I was using regression instead of classification.
 
-During the best point of training, the validation MSE dropped to roughly `≈ 780 seconds²`
-To convert this into something meaningful, we take the square root (RMSE): `RMSE = √780 ≈ 28 seconds`
+The model is trained using **CrossEntropyLoss**, appropriate for multi-class classification.
+This loss measures how confident the model is about the correct finishing class.
 
-This tells us:
-
-On average, the model's predicted race time is off by about `±28 seconds`.
-Given that typical race times are around 70–150 seconds, this corresponds to roughly: `Error ≈ 20–40%`
-
-Since then, my latest training looks like the following:
+Here’s how the loss evolved during training:
 
 ![Latest loss over epochs](./docs/loss_latest.png "Latest loss over epochs")
+
+Key observations:
+
+- Training and validation loss track each other closely → no obvious overfitting
+- Final loss settles around `~1.0–1.2`
+
+For a 6-class problem (0–5), random guessing would yield:
+`Loss ≈ ln(6) ≈ 1.79`
+
+So a validation loss near `1.1` indicates the model is **significantly better than random**, despite the inherent noise of horse racing.
+
+This confirms that the model is learning **meaningful structure**, even in a highly unpredictable domain.
 
 ## 🚀 Plans for the Future
 

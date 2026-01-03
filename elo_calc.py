@@ -107,4 +107,3 @@ def calc_riders(riders):
             results = elo_rating(player1elo=p1['elo'], player2elo=p2['elo'], K=30, outcome=1)
             p1['elo'] = results[0]['elo']
             p2['elo'] = results[1]['elo']
-            print(p1['elo'])

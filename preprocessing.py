@@ -11,7 +11,8 @@ def preprocess_data(data) -> pd.DataFrame:
   'date',
   'start_time',
   'versenykiiras',
-  'race_name', 
+  'race_name',
+  'race_time',
   'versenydij', 
   'program_number', 
   'color',
@@ -19,16 +20,13 @@ def preprocess_data(data) -> pd.DataFrame:
   'dam'], 
   inplace=True)
 
-  # @TODO Try to fill the nullish values (race_time), instead of masking
-  # print(results.isnull().sum()) # Should check nan as well
-
   data['race_of_the_day'] = data['race_of_the_day'].apply(conversion, args=(place_match,))
   data['place'] = data['place'].apply(conversion, args=(place_match,))
   data['place'] = data.loc[data['place'] > 0, ['place']]
   data = data[data['place'].notna()]
   data['sex'] = data['sex'].apply(conversion, args=(sex_match,))
-  data['race_time'] = data['race_time'].apply(parse_race_time)  
-  data = data[data['race_time'].notna()]
+  # data['race_time'] = data['race_time'].apply(parse_race_time)  
+  # data = data[data['race_time'].notna()]
   data['elo'] = 2000
 
   data = calc_elos(data)
@@ -88,12 +86,14 @@ def vectorize_data(dataframe):
   horses = {}
   for _, row in dataframe.iterrows():
     horse = row['horse_name']
-    time = row['race_time']
+    place = row['place']
 
     race_vector = np.append(
-          row.drop(["horse_name", "race_time"]).to_numpy(),
-          time
+          row.drop(["horse_name", "place"]).to_numpy(),
+          place
       )
+    
+    print(race_vector)
 
     if horse in horses:
         horses[horse].append(race_vector)

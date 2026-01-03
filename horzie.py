@@ -15,6 +15,7 @@ sns.set_theme(context='notebook', style='darkgrid', palette='deep', font='sans-s
 ax = sns.heatmap(data.corr(numeric_only=True).round(2), annot=True, cmap="coolwarm")
 plt.savefig('./docs/corr.png', bbox_inches='tight')
 
+print(data.columns.tolist())
 dataset = vectorize_data(data)
 
 nnTraining(dataset=dataset, output_size=len(set(place_match.values())))
