@@ -82,7 +82,6 @@ def nnTraining(dataset, output_size):
   plt.savefig('./docs/loss_latest.png', bbox_inches='tight')  
   
   # torch.save(model.state_dict(), "horzie_model.pth") # Save the model
-  best_model = model.load_state_dict(best_model_wts)
 
 def do_training(model, lossfn, optimizer, dataloader):
   for x_batch, lengths, y_batch in dataloader:

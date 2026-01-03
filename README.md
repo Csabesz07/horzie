@@ -119,7 +119,6 @@ Here’s what’s coming next:
 - ❤️ CNN pipeline to incorporate image data (horse photos, posture, “mindset”)
 - 📡 Fully connected backend + frontend to make Horzie accessible as an app
 - 🧹 Feature optimization (reduce noise, engineer better features, handle missing data)
-- 📊 Experimenting with ranking models instead of simple classification
 - 🧪 Publishing an article about predicting random events with ML
 
 And of course, lots more experiments along the way.

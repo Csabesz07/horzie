@@ -1,5 +1,6 @@
 import pandas as pd
 from helper_functions import conversion, NameHolder, standardize, parse_race_time
+from elo_calc import calc_elos
 from helper_variables import place_match, sex_match
 import csv
 import numpy as np
@@ -28,6 +29,9 @@ def preprocess_data(data) -> pd.DataFrame:
   data['sex'] = data['sex'].apply(conversion, args=(sex_match,))
   data['race_time'] = data['race_time'].apply(parse_race_time)  
   data = data[data['race_time'].notna()]
+  data['elo'] = 2000
+
+  data = calc_elos(data)
 
   jocky_names = NameHolder(data['jockey'])
   horse_names = NameHolder(data['horse_name'])
@@ -57,9 +61,9 @@ def preprocess_data(data) -> pd.DataFrame:
   data['sire'] = data['sire'].apply(conversion, args=(sire_names.names,))
 
   data[[
-    'distance', 'dividend', 'jockey', 'trainer', 'stable', 'sire'
+    'distance', 'dividend', 'jockey', 'trainer', 'stable', 'sire', 'elo'
     ]] = data[[
-      'distance', 'dividend', 'jockey', 'trainer', 'stable', 'sire'
+      'distance', 'dividend', 'jockey', 'trainer', 'stable', 'sire', 'elo'
       ]].apply(standardize)
   
   return data
